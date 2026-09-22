@@ -1,0 +1,6 @@
+- meeting with alex and sarah today at 2pm about the new product launch
+- alex mentioned that the server costs are too high, we need to cut down by 30% next month or switch providers
+- sarah said marketing budget is approved for Q3, but we haven't finalized the ad creatives yet
+- action item: john needs to check AWS pricing options by this Friday
+- also someone mentioned we should fix that login bug on mobile web, users are complaining a lot
+- next meeting scheduled for next Tuesday at 10am to review progress
