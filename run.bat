@@ -1,23 +1,32 @@
 @echo off
 chcp 65001 >nul
-echo 正在尋找並執行 Python 程式...
+echo ========================================================
+echo   InsightEngine Enterprise AI Platform - Startup Utility
+echo ========================================================
 
-:: 嘗試用 py 啟動器
-py script.py
-if %errorlevel% equ 0 goto end
+:: Check for py launcher
+py --version >nul 2>&1
+if %errorlevel% equ 0 (
+    set PYTHON_CMD=py
+    goto check_env
+)
 
-:: 嘗試直接用 python
-python script.py
-if %errorlevel% equ 0 goto end
-
-:: 如果上面兩者都失敗，手動尋找常見的 Python 安裝路徑
-C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python311\python.exe script.py
-if %errorlevel% equ 0 goto end
-
-C:\Users\%USERNAME%\AppData\Local\Programs\Python\Python310\python.exe script.py
-if %errorlevel% equ 0 goto end
+:: Check for direct python command
+python --version >nul 2>&1
+if %errorlevel% equ 0 (
+    set PYTHON_CMD=python
+    goto check_env
+)
 
 echo.
-echo [錯誤] 找不到可以執行的 Python，請確認程式檔名是否為 script.py
-:end
+echo [ERROR] Python interpreter not found! Please ensure Python 3.11+ is installed and added to PATH.
+pause
+exit /b 1
+
+:check_env
+echo [+] Checking and installing required dependencies...
+%PYTHON_CMD% -m pip install -r requirements.txt --quiet
+
+echo [+] Launching InsightEngine Streamlit Application...
+%PYTHON_CMD% -m streamlit run app.py --server.enableCORS false --server.enableXsrfProtection false
 pause
