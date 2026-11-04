@@ -17,3 +17,9 @@ class EnterpriseReportSchema(BaseModel):
     executive_summary: str = Field(description="High-level synthesis and summary tailored for leadership.")
     key_insights: List[str] = Field(description="Bullet points outlining key findings, operational risks, and bottlenecks.")
     action_items: List[ActionItem] = Field(description="Structured array of action items with explicit fields.")
+
+
+class APITransformRequest(BaseModel):
+    raw_text: str = Field(..., description="Unstructured meeting notes or transcripts.")
+    target_language: str = Field(default="English", description="Target language for report output.")
+    tenant_id: str = Field(default="default_tenant", description="Tenant ID for telemetry tracking.")
