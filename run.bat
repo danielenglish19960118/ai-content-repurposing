@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ========================================================
-echo   InsightEngine Enterprise AI Platform - Startup Utility
+echo   InsightEngine Enterprise AI SaaS - Startup Launcher
 echo ========================================================
 
 :: Check for py launcher
@@ -24,7 +24,7 @@ pause
 exit /b 1
 
 :check_env
-echo [+] Checking and installing required dependencies...
+echo [+] Validating and installing dependencies...
 %PYTHON_CMD% -m pip install -r requirements.txt --quiet
 
 echo [+] Launching InsightEngine Streamlit Application...
