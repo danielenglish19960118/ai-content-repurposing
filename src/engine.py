@@ -1,55 +1,55 @@
 """
-Core AI Pipeline Engine for InsightEngine Enterprise
+Core Engine using Google GenAI SDK with Pydantic Structured Output
 """
-
 from __future__ import annotations
-
 import time
+from typing import Tuple
 from google import genai
 from google.genai import types
-from src.schemas import TEMPLATES
 
+from src.models import EnterpriseReportSchema
 
-def process_unstructured_data(
+DEFAULT_MODEL = "gemini-3.6-flash"
+
+def run_enterprise_pipeline(
     raw_text: str,
-    template_name: str,
-    model_name: str,
-    temperature: float,
     target_language: str,
     api_key: str
-) -> tuple[str, float]:
-    """Execute Gemini LLM processing pipeline with latency tracking."""
+) -> Tuple[EnterpriseReportSchema, float, int]:
+    """
+    Executes the unstructured-to-structured pipeline with guaranteed schema fulfillment.
+    """
     if not raw_text or not raw_text.strip():
-        raise ValueError("Raw input text cannot be empty.")
+        raise ValueError("Source input text cannot be empty.")
     if not api_key:
-        raise ValueError("Gemini API Key is required.")
+        raise ValueError("Gemini API Key is missing or invalid.")
 
-    start_time = time.time()
-    
     client = genai.Client(api_key=api_key)
-    template_prompt = TEMPLATES.get(template_name, TEMPLATES["Standard Executive Briefing"])
     
     system_instruction = f"""
-{template_prompt}
-STRICT CONSTRAINTS:
-1. Do NOT invent facts, dates, owners, or metrics not explicitly present in the source text.
-2. Translate and structure the final report strictly in **{target_language}**.
-3. Output MUST be formatted in professional Markdown syntax only.
-""".strip()
+    You are an enterprise management consultant.
+    Parse the raw input text and extract structured business intelligence.
+    STRICT RULES:
+    1. Translate all extracted fields strictly into: {target_language}.
+    2. Do NOT hallucinate facts, metrics, dates, or owners not present in the source text.
+    """.strip()
 
-    prompt_content = f"--- RAW UNSTRUCTURED SOURCE TEXT ---\n{raw_text}\n--- END SOURCE TEXT ---"
-    
     config = types.GenerateContentConfig(
         system_instruction=system_instruction,
-        temperature=temperature
+        response_mime_type="application/json",
+        response_schema=EnterpriseReportSchema,
+        temperature=0.1
     )
-    
+
+    start_time = time.time()
     response = client.models.generate_content(
-        model=model_name,
-        contents=prompt_content,
+        model=DEFAULT_MODEL,
+        contents=f"--- SOURCE TEXT ---\n{raw_text}\n--- END SOURCE TEXT ---",
         config=config
     )
+    latency = round(time.time() - start_time, 2)
     
-    latency = time.time() - start_time
-    output_text = (response.text or "").strip()
-    return output_text, latency
+    # Parse into validated Pydantic object
+    structured_data = EnterpriseReportSchema.model_validate_json(response.text)
+    
+    return structured_data, latency, len(raw_text)
